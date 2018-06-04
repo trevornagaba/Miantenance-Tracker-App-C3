@@ -9,3 +9,5 @@ tests/.pytest_cache
 tests/__init__.pyc
 tests/test_run.pyc
 myapp/views.pyc
+myapp/__pycache__
+__pycache__
