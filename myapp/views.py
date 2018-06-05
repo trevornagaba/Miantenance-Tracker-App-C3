@@ -2,15 +2,45 @@ from flask import Flask, request, jsonify
 from myapp.models import Request, User
 import json
 from myapp import app
+import uuid
+from werkzeug.security import generate_password_hash, check_password_hash
+import jwt
+import datetime
+from functools import wraps
+
+app.config['SECRET KEY'] = 'thisissecret'
 
 requests = Request()
-users = []
+users = User()
+
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = None
+
+        if 'x-access-token' in request.headers:
+            token = request.headers['x-access-token']
+
+        if not token:
+            return jsonify({'message':'Token is missing.'})
+
+        try:
+            data = jwt.decode(token, str(app.config['SECRET_KEY']))
+            print(data)
+            current_user = users.get_user_byname(data['username'])
+
+        except:
+			return jsonify({'message': 'Token is invalid'})
+        return f(current_user,*args,**kwargs)
+    return decorated
 
 # Register a user
-@app.route('/v1/users/signup', methods = ['POST'])
+@app.route('/v1/auth/signup', methods = ['POST'])
 def signup():
+    
     #Retrieve the data
     data = request.get_json()
+    hashed_password = generate_password_hash(data['password'], method='sha256')
     # Validate the data
     if not data['username']:
         return jsonify ({ 'message': 'Please enter your username' }), 400
@@ -22,41 +52,39 @@ def signup():
     if data['password'] != data['reenter_password']:
         return jsonify ({'message': 'Your passwords do not match'}), 400
 
-    user = User(data['username'], data['password'], data['reenter_password'])
-    users.append(user)
+    users.add_user(data['username'], hashed_password)    
     return jsonify (
         {
             'status': 'OK',
             'message': 'User registered',
-            'username': users[-1].get_username(),
-            'number of users': len(users)
+            'username': users.get_user_byname(data['username'])['username'],
+            'number of users': users.number_of_users()
         }
     ), 201
 
 # Login a user
-@app.route('/v1/users/login', methods = ['POST'])
+@app.route('/v1/auth/login', methods = ['POST'])
 def login():
-    # Retrieve the data
-    data = request.get_json()
-    # Validate the data
-    if not data['username']:
-        return jsonify ({ 'message': 'Please enter your username' }), 400
-    if not data['password']:
-        return jsonify ({'message': 'Please enter your password'}), 400
-    
-    if len(users) > 0:
-        for userz in users:
-            print(data['password'])
-            if userz.get_password() == data['password']:
-                return jsonify ({'message': 'User successfully logged in'}), 201
-        print (data['password'])
-        return jsonify({'message': 'Incorrect password'}), 400
+    auth = request.authorization
 
-    return jsonify({'message': 'No users have been registered'})
+    if not auth or not auth.username or not auth.password:
+        return jsonify ({'message': 'Could not verify, login required'})
+    
+    my_user = users.get_user_byname(auth.username)
+
+    if not my_user:
+        return jsonify({'message': 'Could not verify, no user found'})
+
+    if check_password_hash(my_user['password'], auth.password):
+        token = jwt.encode({'username': my_user['username'], 'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=30)}, str(app.config['SECRET_KEY']))
+        return jsonify({'token' : token.decode('UTF-8')})
+
+    return jsonify({'message': 'Could not verify, login required...'})
 
 #Create a request
 @app.route('/v1/users/requests', methods = ['POST'])
-def create_requests():
+@token_required
+def create_requests(current_user):
     # Retrieve the data
     data = request.get_json()
     # Validate the data
@@ -91,7 +119,8 @@ def create_requests():
 
 #Fetch all requests of a logged in user
 @app.route('/v1/users/requests', methods = ['GET'])
-def view_requests():
+@token_required
+def view_requests(current_user):
     if requests.number_of_requests < 1:
         return jsonify(
             {
@@ -110,21 +139,21 @@ def view_requests():
         
 
 #Fetch a request that belongs to a logged in user
-@app.route('/v1/users/requests/<int:id>', methods = ['GET'])
-def view_user_requests(id):
+@app.route('/v1/users/requests/<id>', methods = ['GET'])
+@token_required
+def view_user_requests(current_user, id):
     try:     
         # Validate request
-        if isinstance(id, int):
-            return jsonify(
-                {
-                'status':'OK', 
-                'message':'successful',
-                'device-type': requests.get_request(id-1)['device_type'],
-                'fault description': requests.get_request(id-1)['fault_description'],
-                'device-status': requests.get_request(id-1)['device_status'],
-                'id': requests.get_request(id-1)['id']
-                }
-            ), 200
+        return jsonify(
+            {
+            'status':'OK', 
+            'message':'successful',
+            'device-type': requests.get_request_byid(id)['device_type'],
+            'fault description': requests.get_request_byid(id)['fault_description'],
+            'device-status': requests.get_request_byid(id)['device_status'],
+            'id': requests.get_request_byid(id)['id']
+            }
+        ), 200
     # Catch none integer input
     except  ValueError:
         return jsonify(
@@ -143,8 +172,9 @@ def view_user_requests(id):
         ), 400
 
 #Modify a request
-@app.route('/v1/users/requests/<int:id>', methods = ['PUT'])
-def modify_requests(id):
+@app.route('/v1/users/requests/<id>', methods = ['PUT'])
+@token_required
+def modify_requests(current_user, id):
     # Retrieve the request
     data = request.get_json()
     # Validate the data
@@ -156,17 +186,17 @@ def modify_requests(id):
         }
         )
     try:
-        if isinstance(data['device_type'].encode(), str) and isinstance(data['fault_description'].encode(), str) and isinstance(id, int):
+        if isinstance(data['device_type'].encode(), str) and isinstance(data['fault_description'].encode(), str):
             # Store the data 
             requests.modify_request(id, data['device_type'], data['fault_description'])
             return jsonify(
                 {
                 'status': 'OK',
-                'device-type': requests.get_request(id-1)['device_type'],
-                'fault-description': requests.get_request(id-1)['fault_description'],
+                'device-type': requests.get_request_byid(id)['device_type'],
+                'fault-description': requests.get_request_byid(id)['fault_description'],
                 'message': 'A request was modified',
-                'request-id': requests.get_request(id-1)['id'],
-                'device-status': requests.get_request(id-1)['device_status']
+                'request-id': requests.get_request_byid(id)['id'],
+                'device-status': requests.get_request_byid(id)['device_status']
                 }
             ), 200    
     except AttributeError:
