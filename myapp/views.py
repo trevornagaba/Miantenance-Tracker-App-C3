@@ -56,8 +56,7 @@ def signup():
         {
             'status': 'OK',
             'message': 'User registered',
-            'username': users.get_user_byname(data['username']),
-            'number of users': users.number_of_users()
+            'username': users.get_user_byname(data['username'])
         }
     ), 201
 
@@ -84,7 +83,7 @@ def login():
                 }
         )
 
-    return jsonify({'message': 'Could not verify, login required...'})
+    return jsonify({'message': 'Could not verify. Please check your login details'})
 
 #Create a request
 @app.route('/v1/users/requests', methods = ['POST'])
