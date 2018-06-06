@@ -66,12 +66,12 @@ def login():
     auth = request.authorization
 
     if not auth or not auth.username or not auth.password:
-        return jsonify ({'message': 'Could not verify, login required'})
+        return jsonify ({'message': 'Could not verify, login required'}), 400
     
     my_user = users.get_user_byname(auth.username)
 
     if not my_user:
-        return jsonify({'message': 'Could not verify, no user found'})
+        return jsonify({'message': 'Could not verify, no user found'}), 400
 
     if check_password_hash(my_user['password'], auth.password):
         token = jwt.encode({'id': my_user['id'], 'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=30)}, str(app.config['SECRET_KEY']))
@@ -81,9 +81,9 @@ def login():
                 'users': users.get_all_users(),
                 'user' : my_user
                 }
-        )
+        ), 201
 
-    return jsonify({'message': 'Could not verify. Please check your login details'})
+    return jsonify({'message': 'Could not verify. Please check your login details'}) , 400
 
 #Create a request
 @app.route('/v1/users/requests', methods = ['POST'])
@@ -186,7 +186,7 @@ def modify_requests(current_user, id):
                 'status': 'FAILED',
                 'message': 'This request cannot be modified at the this time'
         }
-        )
+        ), 400
     # Retrieve the request
     data = request.get_json()
     # Validate the data
@@ -196,7 +196,7 @@ def modify_requests(current_user, id):
                 'status': 'FAILED',
                 'message': 'One of the required fields is empty'
         }
-        )
+        ), 400
     try:
         if isinstance(data['device_type'].encode(), str) and isinstance(data['fault_description'].encode(), str):
             # Store the data 
@@ -208,7 +208,7 @@ def modify_requests(current_user, id):
                             'status': 'FAILED',
                             'message': 'Invalid request id. Id does not match any of your requests.'
                         }
-                    )
+                    ), 400
                 _request = requests.modify_request(id, data['device_type'], data['fault_description'])
                 _id = _request[1]
                 return jsonify(
@@ -226,7 +226,7 @@ def modify_requests(current_user, id):
                     'status': 'FAILED',
                     'message': 'Invalid request id. Id does not match any of your requests.'
                 }
-            )
+            ), 400
     except AttributeError:
         return jsonify(
             {
@@ -271,8 +271,8 @@ def admin_approve_request(current_user, id):
                     'status': 'FAILED',
                     'message': 'Invalid request id. Id does not match any of your requests.'
                 }
-            )
-            # Test if status is approved
+            ), 400
+        # Test if status is approved
         approve_request = requests.get_request(id)
         if approve_request['device_status'] != 'Pending':
             return jsonify (
@@ -314,7 +314,7 @@ def admin_disapprove_request(current_user, id):
                     'status': 'FAILED',
                     'message': 'Invalid request id. Id does not match any of your requests.'
                 }
-            )
+            ), 400
         _request = requests.modify_status(id, 'Disapproved')
         _id = _request[1]
         return jsonify(
@@ -348,7 +348,7 @@ def admin_resolve_request(current_user, id):
                     'status': 'FAILED',
                     'message': 'Invalid request id. Id does not match any of your requests.'
                 }
-            )
+            ), 400
         _request = requests.modify_status(id, 'Resolved')
         _id = _request[1]
         return jsonify(
