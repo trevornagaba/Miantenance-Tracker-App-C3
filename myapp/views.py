@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from myapp.models import Request, User
 import json
 from myapp import app
+from myapp import db
 import uuid
 from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
@@ -26,18 +27,16 @@ def token_required(f):
 
         try:
             data = jwt.decode(token, str(app.config['SECRET_KEY']))
-            print(data)
-            current_user = users.get_user_byname(data['username'])
+            current_user = users.get_user_byid(data['id'])
 
         except:
-			return jsonify({'message': 'Token is invalid'})
+            return jsonify({'message':'Token is invalid.'})
         return f(current_user,*args,**kwargs)
     return decorated
 
 # Register a user
 @app.route('/v1/auth/signup', methods = ['POST'])
 def signup():
-    
     #Retrieve the data
     data = request.get_json()
     hashed_password = generate_password_hash(data['password'], method='sha256')
@@ -52,12 +51,12 @@ def signup():
     if data['password'] != data['reenter_password']:
         return jsonify ({'message': 'Your passwords do not match'}), 400
 
-    users.add_user(data['username'], hashed_password)    
+    users.add_user(data['username'], hashed_password)
     return jsonify (
         {
             'status': 'OK',
             'message': 'User registered',
-            'username': users.get_user_byname(data['username'])['username'],
+            'username': users.get_user_byname(data['username']),
             'number of users': users.number_of_users()
         }
     ), 201
@@ -76,8 +75,14 @@ def login():
         return jsonify({'message': 'Could not verify, no user found'})
 
     if check_password_hash(my_user['password'], auth.password):
-        token = jwt.encode({'username': my_user['username'], 'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=30)}, str(app.config['SECRET_KEY']))
-        return jsonify({'token' : token.decode('UTF-8')})
+        token = jwt.encode({'id': my_user['id'], 'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=30)}, str(app.config['SECRET_KEY']))
+        return jsonify(
+            {
+                'token' : token.decode('UTF-8'),
+                'users': users.get_all_users(),
+                'user' : my_user
+                }
+        )
 
     return jsonify({'message': 'Could not verify, login required...'})
 
@@ -98,15 +103,15 @@ def create_requests(current_user):
     try:
         if isinstance(data['device_type'].encode(), str) and isinstance (data['fault_description'].encode(), str):
             # Create id and store the data
-            requests.add_request(data['device_type'], data['fault_description'])
-            index = requests.number_of_requests()-1
+            _request = requests.add_request(current_user['id'], data['device_type'], data['fault_description'])
+            id = _request[1]
             return jsonify(
                 {
                     'status':'OK',
                     'message': 'Request created successfully',
-                    'device-status': requests.get_request(index)['device_status'],
-                    'device-type': requests.get_request(index)['device_type'],
-                    'request-id': requests.get_request(index)['id']
+                    'device-status': requests.get_request(id)['device_status'],
+                    'device-type': requests.get_request(id)['device_type'],
+                    'request-id': requests.get_request(id)['id']
                 }
             ), 201
     except AttributeError:
@@ -130,10 +135,9 @@ def view_requests(current_user):
         ), 400
     return jsonify(
             {
-            'number of requests': requests.number_of_requests(),
             'status':'OK', 
             'message':'successful',
-            'requests': requests.get_all_requests() 
+            'requests': requests.get_user_requests(current_user['id']) 
             }
         ), 200
         
@@ -148,10 +152,10 @@ def view_user_requests(current_user, id):
             {
             'status':'OK', 
             'message':'successful',
-            'device-type': requests.get_request_byid(id)['device_type'],
-            'fault description': requests.get_request_byid(id)['fault_description'],
-            'device-status': requests.get_request_byid(id)['device_status'],
-            'id': requests.get_request_byid(id)['id']
+            'device-type': requests.get_request(id)['device_type'],
+            'fault description': requests.get_request(id)['fault_description'],
+            'device-status': requests.get_request(id)['device_status'],
+            'id': requests.get_request(id)['id']
             }
         ), 200
     # Catch none integer input
@@ -188,17 +192,26 @@ def modify_requests(current_user, id):
     try:
         if isinstance(data['device_type'].encode(), str) and isinstance(data['fault_description'].encode(), str):
             # Store the data 
-            requests.modify_request(id, data['device_type'], data['fault_description'])
+            user_id = requests.get_request(id)['user_id']
+            if current_user['id'] == user_id:
+                _request = requests.modify_request(id, data['device_type'], data['fault_description'])
+                _id = _request[1]
+                return jsonify(
+                    {
+                        'status': 'OK',
+                        'device-type': requests.get_request(_id)['device_type'],
+                        'fault-description': requests.get_request(_id)['fault_description'],
+                        'message': 'A request was modified',
+                        'request-id': requests.get_request(_id)['id'],
+                        'device-status': requests.get_request(_id)['device_status']
+                    }
+                ), 200    
             return jsonify(
                 {
-                'status': 'OK',
-                'device-type': requests.get_request_byid(id)['device_type'],
-                'fault-description': requests.get_request_byid(id)['fault_description'],
-                'message': 'A request was modified',
-                'request-id': requests.get_request_byid(id)['id'],
-                'device-status': requests.get_request_byid(id)['device_status']
+                    'status': 'FAILED',
+                    'message': 'Invalid request id. Id does not match any of your requests.'
                 }
-            ), 200    
+            )
     except AttributeError:
         return jsonify(
             {
