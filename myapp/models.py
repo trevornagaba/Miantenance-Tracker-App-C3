@@ -6,17 +6,12 @@ database = DB()
 class User():
     def __init__(self):
         self.users = []
-        id = uuid.uuid1()
-        user = {'id':id, 'username': 'super', 'password': 'password', 'admin': True}
-        self.users.append(user)
 
     def add_user(self, username, password, admin = False):
         id = uuid.uuid1()
         user = {'id':str(id), 'username': username, 'password': password, 'admin': admin}
-        # self.users.append(user)
         database.insert_user(user['id'], user['username'], user['password'], user['admin'])
 
-#Update to use id through token
     def get_user_byname(self, name):
         user = database.view_user_byname(name)
         userz = {}
@@ -97,6 +92,11 @@ class Request():
     def modify_request(self, id, device_type, fault_description, device_status = 'Pending'):
         request = {'id':id, 'device_type': device_type, 'fault_description': fault_description, 'device_status': device_status}
         database.update_request(request['device_type'], request['fault_description'], request['device_status'], request['id'])
+        return database.view_one_request(request['id'])
+
+    def modify_status(self, id, device_status):
+        request = {'id':id, 'device_status': device_status}
+        database.update_status(request['device_status'], request['id'])
         return database.view_one_request(request['id'])
 
     def number_of_requests(self):

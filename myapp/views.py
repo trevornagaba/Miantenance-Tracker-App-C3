@@ -194,6 +194,13 @@ def modify_requests(current_user, id):
             # Store the data 
             user_id = requests.get_request(id)['user_id']
             if current_user['id'] == user_id:
+                if not requests.get_request(id):
+                    return jsonify(
+                        {
+                            'status': 'FAILED',
+                            'message': 'Invalid request id. Id does not match any of your requests.'
+                        }
+                    )
                 _request = requests.modify_request(id, data['device_type'], data['fault_description'])
                 _id = _request[1]
                 return jsonify(
@@ -219,10 +226,127 @@ def modify_requests(current_user, id):
             'message': 'Failed to modify a request. Data is invalid'
             }
         ), 400
-    except IndexError:
+
+#Admin fetch all requests of all users
+@app.route('/v1/requests', methods = ['GET'])
+@token_required
+def admin_view_requests(current_user):
+    #Test if admin
+    user = users.get_user_byid(current_user['id'])
+    ## Add test for requests in db
+    if user['admin'] == False:
         return jsonify(
             {
-            'status': 'FAIL',
-            'message': 'Request id out of range'
+                'status':'FAILED',
+                'message': 'You do not have these permissions',
             }
+        ), 400
+    return jsonify(
+            {
+            'status':'OK', 
+            'message':'successful',
+            'requests': requests.get_all_requests() 
+            }
+        ), 200
+
+#Admin approve a request
+@app.route('/v1/requests/<id>/approve', methods = ['PUT'])
+@token_required
+def admin_approve_request(current_user, id):
+    # Retrieve user
+    user = users.get_user_byid(current_user['id'])
+    # Test if admin
+    if user['admin'] == True:
+        if not requests.get_request(id):
+            return jsonify(
+                {
+                    'status': 'FAILED',
+                    'message': 'Invalid request id. Id does not match any of your requests.'
+                }
+            )
+        _request = requests.modify_status(id, 'Approved')
+        _id = _request[1]
+        return jsonify(
+            {
+                'status': 'OK',
+                'device-type': requests.get_request(_id)['device_type'],
+                'fault-description': requests.get_request(_id)['fault_description'],
+                'message': 'A request was modified',
+                'request-id': requests.get_request(_id)['id'],
+                'device-status': requests.get_request(_id)['device_status']
+            }
+        ), 200
+    return jsonify (
+            {
+                'status': 'FAILED',
+                'message': 'Access denied. Your do not have these rights.'
+        }
+        ), 400
+
+#Admin disapprove a request
+@app.route('/v1/requests/<id>/disapprove', methods = ['PUT'])
+@token_required
+def admin_disapprove_request(current_user, id):
+    # Retrieve user
+    user = users.get_user_byid(current_user['id'])
+    # Test if admin
+    if user['admin'] == True:
+        if not requests.get_request(id):
+            return jsonify(
+                {
+                    'status': 'FAILED',
+                    'message': 'Invalid request id. Id does not match any of your requests.'
+                }
+            )
+        _request = requests.modify_status(id, 'Disapproved')
+        _id = _request[1]
+        return jsonify(
+            {
+                'status': 'OK',
+                'device-type': requests.get_request(_id)['device_type'],
+                'fault-description': requests.get_request(_id)['fault_description'],
+                'message': 'A request was modified',
+                'request-id': requests.get_request(_id)['id'],
+                'device-status': requests.get_request(_id)['device_status']
+            }
+        ), 200
+    return jsonify (
+            {
+                'status': 'FAILED',
+                'message': 'Access denied. Your do not have these rights.'
+        }
+        ), 400
+
+#Admin resolve a request
+@app.route('/v1/requests/<id>/resolve', methods = ['PUT'])
+@token_required
+def admin_resolve_request(current_user, id):
+    # Retrieve user
+    user = users.get_user_byid(current_user['id'])
+    # Test if admin
+    if user['admin'] == True:
+        if not requests.get_request(id):
+            return jsonify(
+                {
+                    'status': 'FAILED',
+                    'message': 'Invalid request id. Id does not match any of your requests.'
+                }
+            )
+        _request = requests.modify_status(id, 'Resolved')
+        _id = _request[1]
+        return jsonify(
+            {
+                'status': 'OK',
+                'device-type': requests.get_request(_id)['device_type'],
+                'fault-description': requests.get_request(_id)['fault_description'],
+                'message': 'A request was modified',
+                'request-id': requests.get_request(_id)['id'],
+                'device-status': requests.get_request(_id)['device_status']
+            }
+        ), 200
+    return jsonify (
+            {
+                'status': 'FAILED',
+                'message': 'Access denied. Your do not have these rights.'
+        }
         ), 400

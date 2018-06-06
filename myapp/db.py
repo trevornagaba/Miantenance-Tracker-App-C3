@@ -43,7 +43,7 @@ class DB():
     def view_all_requests(self):
         self.cur.execute("SELECT * from requests")
         rows = self.cur.fetchall()
-        return list(rows)
+        return rows
 
     def view_user_requests(self, user_id):
         self.cur.execute("SELECT * FROM requests WHERE user_id = '{}'" .format(user_id))
@@ -51,7 +51,6 @@ class DB():
         return request
 
     def view_one_request(self, id):
-        print ("SELECT id FROM requests WHERE id = '{}'" .format(id))
         self.cur.execute("SELECT * FROM requests WHERE id = '{}'" .format(id))
         request = self.cur.fetchone()
         return request
@@ -62,4 +61,8 @@ class DB():
 
     def update_request(self, device_type, fault_description, device_status, id):
         self.cur.execute("UPDATE requests SET device_type='{}', fault_description='{}', device_status='{}' where id='{}'" .format(device_type, fault_description, device_status, id))
+        self.conn.commit()
+
+    def update_status(self, device_status, id):
+        self.cur.execute("UPDATE requests SET device_status='{}' where id='{}'" .format(device_status, id))
         self.conn.commit()
