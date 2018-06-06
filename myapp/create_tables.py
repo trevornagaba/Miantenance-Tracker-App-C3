@@ -10,7 +10,7 @@ def create_tables():
     cur = conn.cursor()
     cur.execute("CREATE TABLE IF NOT EXISTS users (id TEXT, username TEXT, password TEXT, admin BOOL)")
     cur.execute("CREATE TABLE IF NOT EXISTS requests (user_id TEXT, id TEXT, device_type TEXT, fault_description TEXT, device_status TEXT)")
-    cur.execute("INSERT INTO users VALUES('{}','{}','{}','{}')" .format(id, 'username', admin_password, True))
+    cur.execute("INSERT INTO users VALUES('{}','{}','{}','{}')" .format(id, 'Admin', admin_password, True))
     conn.commit()
     conn.close()
         
