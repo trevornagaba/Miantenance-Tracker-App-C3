@@ -179,13 +179,22 @@ def view_user_requests(current_user, id):
 @app.route('/v1/users/requests/<id>', methods = ['PUT'])
 @token_required
 def modify_requests(current_user, id):
+    # Test if status is approved
+    modify_request = requests.get_request(id)
+    if modify_request['device_status'] ==  'Approved':
+        return jsonify (
+            {
+                'status': 'FAILED',
+                'message': 'This request cannot be modified at the this time'
+        }
+        )
     # Retrieve the request
     data = request.get_json()
     # Validate the data
     if data['device_type'] == "" or data['fault_description'] == "":
         return jsonify (
             {
-                'status': 'OK',
+                'status': 'FAILED',
                 'message': 'One of the required fields is empty'
         }
         )
@@ -262,6 +271,15 @@ def admin_approve_request(current_user, id):
                 {
                     'status': 'FAILED',
                     'message': 'Invalid request id. Id does not match any of your requests.'
+                }
+            )
+            # Test if status is approved
+        approve_request = requests.get_request(id)
+        if approve_request['device_status'] != 'Pending':
+            return jsonify (
+                {
+                    'status': 'FAILED',
+                    'message': 'This request cannot be approved at the this time. It is not pending'
                 }
             )
         _request = requests.modify_status(id, 'Approved')

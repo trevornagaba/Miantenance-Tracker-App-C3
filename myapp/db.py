@@ -6,7 +6,6 @@ class DB():
         self.cur = self.conn.cursor()
 
     def insert_user(self, id, username, password, admin):
-        self.cur.execute("CREATE TABLE IF NOT EXISTS users (id TEXT, username TEXT, password TEXT, admin BOOL)")
         self.cur.execute("INSERT INTO users VALUES('{}','{}','{}','{}')" .format(id, username, password, admin))
         self.conn.commit()
 
@@ -36,7 +35,6 @@ class DB():
     ###Request table methods
 
     def insert_request(self, user_id, id, device_type, fault_description, device_status):
-        self.cur.execute("CREATE TABLE IF NOT EXISTS requests (user_id TEXT, id TEXT, device_type TEXT, fault_description TEXT, device_status TEXT)")
         self.cur.execute("INSERT INTO requests VALUES('{}','{}','{}','{}','{}')" .format(user_id, id, device_type, fault_description, device_status))
         self.conn.commit()
 
