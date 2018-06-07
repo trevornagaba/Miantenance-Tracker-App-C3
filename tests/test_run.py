@@ -259,9 +259,7 @@ class MyTests(TestCase):
                 '/v1/users/requests',
                 content_type = 'application/json'
             )
-            reply = json.loads(response.data.decode())
-            self.assertEquals(reply['number of requests'], 3) 
-            self.assertEquals(reply['requests'][0]['id'], 1) 
+            reply = json.loads(response.data.decode()) 
             self.assertEquals(reply['message'], 'successful') 
             self.assertEquals(response.status_code, 200)
 

@@ -1,104 +1,115 @@
 import uuid
-from myapp.db import DB
+import psycopg2
 
-database = DB()
-
-class User():
+class DB():
     def __init__(self):
-        self.users = []
+        self.conn = psycopg2.connect("dbname='username' user='username' password='Redfusion102' host='localhost' port='5432'")
+        self.cur = self.conn.cursor()
 
     def add_user(self, username, password, admin = False):
         id = uuid.uuid1()
-        user = {'id':str(id), 'username': username, 'password': password, 'admin': admin}
-        database.insert_user(user['id'], user['username'], user['password'], user['admin'])
-
-    def get_user_byname(self, name):
-        user = database.view_user_byname(name)
-        userz = {}
-        userz['id'] = user[0]
-        userz['username'] = user[1]
-        userz['password'] = user[2]
-        userz['admin'] = user[3]
-        return userz
-
-    def get_user_byid(self, id):
-        user = database.view_user(id)
-        userz = {}
-        userz['id'] = user[0]
-        userz['username'] = user[1]
-        userz['password'] = user[2]
-        userz['admin'] = user[3]
-        return userz
+        self.cur.execute("INSERT INTO users VALUES('{}','{}','{}','{}')" .format(id, username, password, admin))
+        self.conn.commit()
 
     def get_all_users(self):
+        self.cur.execute("SELECT * from users")
+        users = self.cur.fetchall()
         my_users = []
-        for userz in database.view_all_users():
+        for user in list(users):
             my_dict = {}
-            my_dict['id'] = userz[0]
-            my_dict['username'] = userz[1]
-            my_dict['password'] = userz[2]
-            my_dict['admin'] = userz[3]
+            my_dict['id'] = user[0]
+            my_dict['username'] = user[1]
+            my_dict['password'] = user[2]
+            my_dict['admin'] = user[3]
             my_users.append(my_dict)
         return my_users
 
-    def number_of_users(self):
-        length = len(self.users)
-        return length
-
-class Request():
-    def __init__(self):
-        self.requests = []
-
-    def add_request(self, user_id, device_type, fault_description, device_status = 'Pending'):
-        id = uuid.uuid1()
-        request = {'user_id': user_id, 'id':id, 'device_type': device_type, 'fault_description': fault_description, 'device_status': device_status}
-        database.insert_request(request['user_id'], request['id'], request['device_type'], request['fault_description'], request['device_status'])
-        return database.view_one_request(request['id'])
-
-    def get_request(self, id):
-        my_request = database.view_one_request(id)
+    def get_user_byid(self, id):
+        self.cur.execute("SELECT * from users where id = '{}'" .format(id))
+        user = self.cur.fetchone()
         my_dict = {}
-        my_dict['user_id'] = my_request[0]
-        my_dict['id'] = my_request[1]
-        my_dict['device_type'] = my_request[2]
-        my_dict['fault_description'] = my_request[3]
-        my_dict['device_status'] = my_request[4]
+        my_dict['id'] = user[0]
+        my_dict['username'] = user[1]
+        my_dict['password'] = user[2]
+        my_dict['admin'] = user[3]
         return my_dict
 
-    def get_user_requests(self, user_id):
-        my_requests = []
-        for requestz in database.view_user_requests(user_id):
-            my_dict = {}
-            my_dict['user_id'] = requestz[0]
-            my_dict['id'] = requestz[1]
-            my_dict['device_type'] = requestz[2]
-            my_dict['fault_description'] = requestz[3]
-            my_dict['device_status'] = requestz[4]
-            my_requests.append(my_dict)
-        return my_requests
+    def get_user_byname(self, username):
+        self.cur.execute("SELECT * from users where username = '{}'" .format(username))
+        user = self.cur.fetchone()
+        my_dict = {}
+        my_dict['id'] = user[0]
+        my_dict['username'] = user[1]
+        my_dict['password'] = user[2]
+        my_dict['admin'] = user[3]
+        return my_dict
+
+    def delete_user(self, item):
+        self.cur.execute("DELETE FROM users where item='{}'" .format(item))
+        self.conn.commit()
+
+    def update_user(self, id, username, password, admin):
+        self.cur.execute("UPDATE users SET username='{}', password='{}', admin='{}' where id='{}'" .format(username, password, admin, id))
+        self.conn.commit()
+
+    ###Request table methods
+
+    def add_request(self, user_id, device_type, fault_description, device_status='Pending'):
+        id = uuid.uuid1()
+        self.cur.execute("INSERT INTO requests VALUES('{}','{}','{}','{}','{}')" .format(user_id, id, device_type, fault_description, device_status))
+        self.conn.commit()
+        return self.get_request(id)
 
     def get_all_requests(self):
+        self.cur.execute("SELECT * from requests")
+        requests = self.cur.fetchall()
+        #return rows
         my_requests = []
-        for requestz in database.view_all_requests():
+        for request in requests:
             my_dict = {}
-            my_dict['user_id'] = requestz[0]
-            my_dict['id'] = requestz[1]
-            my_dict['device_type'] = requestz[2]
-            my_dict['fault_description'] = requestz[3]
-            my_dict['device_status'] = requestz[4]
+            my_dict['user_id'] = request[0]
+            my_dict['id'] = request[1]
+            my_dict['device_type'] = request[2]
+            my_dict['fault_description'] = request[3]
+            my_dict['device_status'] = request[4]
             my_requests.append(my_dict)
         return my_requests
 
-    def modify_request(self, id, device_type, fault_description, device_status = 'Pending'):
-        request = {'id':id, 'device_type': device_type, 'fault_description': fault_description, 'device_status': device_status}
-        database.update_request(request['device_type'], request['fault_description'], request['device_status'], request['id'])
-        return database.view_one_request(request['id'])
+    def get_user_requests(self, user_id):
+        self.cur.execute("SELECT * FROM requests WHERE user_id = '{}'" .format(user_id))
+        requests = self.cur.fetchall()
+        my_requests = []
+        for request in requests:
+            my_dict = {}
+            my_dict['user_id'] = request[0]
+            my_dict['id'] = request[1]
+            my_dict['device_type'] = request[2]
+            my_dict['fault_description'] = request[3]
+            my_dict['device_status'] = request[4]
+            my_requests.append(my_dict)
+        return my_requests
+
+    def get_request(self, id):
+        self.cur.execute("SELECT * FROM requests WHERE id = '{}'" .format(id))
+        request = self.cur.fetchone()
+        my_dict = {}
+        my_dict['user_id'] = request[0]
+        my_dict['id'] = request[1]
+        my_dict['device_type'] = request[2]
+        my_dict['fault_description'] = request[3]
+        my_dict['device_status'] = request[4]
+        return my_dict
+
+    # def delete_request(self, item):
+    #     self.cur.execute("DELETE FROM requests where item='{}'" .format(item))
+    #     self.conn.commit()
+
+    def modify_request(self, id, device_type, fault_description, device_status='Pending'):
+        self.cur.execute("UPDATE requests SET device_type='{}', fault_description='{}', device_status='{}' where id='{}'" .format(device_type, fault_description, device_status, id))
+        self.conn.commit()
+        return self.get_request(id)
 
     def modify_status(self, id, device_status):
-        request = {'id':id, 'device_status': device_status}
-        database.update_status(request['device_status'], request['id'])
-        return database.view_one_request(request['id'])
-
-    def number_of_requests(self):
-        length = len(self.requests)
-        return length
+        self.cur.execute("UPDATE requests SET device_status='{}' where id='{}'" .format(device_status, id))
+        self.conn.commit()
+        return self.get_request(id)
