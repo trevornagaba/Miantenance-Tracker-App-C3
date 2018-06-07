@@ -7,7 +7,7 @@ install:
 
 script:
   - pytest tests/test_views.py
-  - pytest tests/test_views.py
+  - pytest tests/test_auth.py
   - nose2 --with-coverage
 
 after_success:
