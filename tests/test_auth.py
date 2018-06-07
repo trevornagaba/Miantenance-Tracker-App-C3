@@ -62,7 +62,7 @@ class MyTests(TestCase):
             )
             reply = json.loads(response.data.decode())
             self.assertEquals(
-                reply['user']['username'].encode(), self.login_data['username'])
+                reply['user']['username'], self.login_data['username'])
             self.assertEquals(response.status_code, 201)
 
     # Test for login with wrong password

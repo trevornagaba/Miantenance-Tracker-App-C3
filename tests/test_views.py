@@ -58,7 +58,7 @@ class MyTests(TestCase):
             )
             reply_2 = json.loads(response_2.data.decode())
             self.assertTrue(
-                reply_2['device-status'] in ['Pending', 'Rejected', 'Approved', 'Resolved'], True)
+                reply_2['device-status'] in ['Pending', 'Disapproved', 'Approved', 'Resolved'], True)
             self.assertEquals(response_2.status_code, 201)
 
     # Test the view all requests endpoint
@@ -96,7 +96,7 @@ class MyTests(TestCase):
             )
             reply_2 = json.loads(response_2.data.decode())
             self.assertTrue(
-                reply_2['device-status'] in ['Pending', 'Rejected', 'Approved', 'Resolved'], True)
+                reply_2['device-status'] in ['Pending', 'Disapproved', 'Approved', 'Resolved'], True)
             self.assertEquals(reply_2['message'], 'successful')
             self.assertTrue(response_2.status_code, 200)
 
@@ -119,7 +119,7 @@ class MyTests(TestCase):
             )
             reply_2 = json.loads(response_2.data.decode())
             self.assertTrue(
-                reply_2['device-status'] in ['Pending', 'Rejected', 'Approved', 'Resolved'], True)
+                reply_2['device-status'] in ['Pending', 'Disapproved', 'Approved', 'Resolved'], True)
             self.assertEquals(reply_2['device-type'],
                               self.modify_data['device_type'])
             self.assertEquals(response_2.status_code, 200)
