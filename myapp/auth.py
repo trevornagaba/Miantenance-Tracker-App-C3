@@ -59,7 +59,7 @@ class Auth():
                 }
             ), 400
 
-        # Catch Type error is username does not exist in db and excecute signup when error is caught.
+        # Catch Type error if username does not exist in db.
         try:
             user_name = database.get_user_byname(data['username'])
             if user_name['username'] == data['username']:
