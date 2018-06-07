@@ -27,18 +27,6 @@ class MyTests(TestCase):
         )
         return app
 
-    # Test for successful user signup
-    def test_signup_successful(self):
-        with self.client:
-            response = self.client.post(
-                '/v1/auth/signup',
-                content_type='application/json',
-                data=json.dumps(self.signup_data)
-            )
-            reply = json.loads(response.data.decode())
-            self.assertEquals(reply['message'], 'User registered')
-            self.assertEquals(response.status_code, 201)
-
     # Test for signup with wrong reenter_password
     def test_signup_fail(self):
         with self.client:
