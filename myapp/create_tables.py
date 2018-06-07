@@ -4,6 +4,7 @@ from werkzeug.security import generate_password_hash
 
 id = uuid.uuid1()
 admin_password = generate_password_hash('password', method='sha256')
+
 # Create users table, requests table and admin
 def create_tables():
     conn = psycopg2.connect("dbname='username' user='username' password='Redfusion102' host='localhost' port='5432'")
