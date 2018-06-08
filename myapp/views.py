@@ -1,185 +1,328 @@
 from flask import Flask, request, jsonify
-from models import Request, User
 import json
 from myapp import app
+from myapp.models import DB
+import uuid
+from werkzeug.security import generate_password_hash, check_password_hash
+import jwt
+import datetime
+from functools import wraps
+from myapp.auth import Auth
 
-requests = Request()
-users = []
+app.config['SECRET KEY'] = 'thisissecret'
 
-# Register a user
-@app.route('/v1/users/signup', methods = ['POST'])
-def signup():
-    #Retrieve the data
-    data = request.get_json()
-    # Validate the data
-    if not data['username']:
-        return jsonify ({ 'message': 'Please enter your username' }), 400
-    if not data['password']:
-        return jsonify ({'message': 'Please enter your password'}), 400
-    if not data['reenter_password']:
-        return jsonify ({'message': 'Please re-enter your password'}), 400
+database = DB()
+auth = Auth()
 
-    if data['password'] != data['reenter_password']:
-        return jsonify ({'message': 'Your passwords do not match'}), 400
 
-    user = User(data['username'], data['password'], data['reenter_password'])
-    users.append(user)
-    return jsonify (
-        {
-            'status': 'OK',
-            'message': 'User registered',
-            'username': users[-1].get_username(),
-            'number of users': len(users)
-        }
-    ), 201
-
-# Login a user
-@app.route('/v1/users/login', methods = ['POST'])
-def login():
+@app.route('/v1/users/requests', methods=['POST'])
+@auth.token_required
+def create_requests(current_user):
     # Retrieve the data
     data = request.get_json()
     # Validate the data
-    if not data['username']:
-        return jsonify ({ 'message': 'Please enter your username' }), 400
-    if not data['password']:
-        return jsonify ({'message': 'Please enter your password'}), 400
-    
-    if len(users) > 0:
-        for userz in users:
-            print(data['password'])
-            if userz.get_password() == data['password']:
-                return jsonify ({'message': 'User successfully logged in'}), 201
-        print (data['password'])
-        return jsonify({'message': 'Incorrect password'}), 400
-
-    return jsonify({'message': 'No users have been registered'})
-
-#Create a request
-@app.route('/v1/users/requests', methods = ['POST'])
-def create_requests():
-    # Retrieve the data
-    data = request.get_json()
-    # Validate the data
-    if data['device_type'] == "" or data['fault_description'] == "":
-        return jsonify (
+    if data['device_type'].strip(" ") == "" or data['fault_description'].strip(" ") == "":
+        return jsonify(
             {
                 'status': 'FAILED',
                 'message': 'One of the required fields is empty'
-        }
+            }
         ), 400
-    try:
-        if isinstance(data['device_type'].encode(), str) and isinstance (data['fault_description'].encode(), str):
-            # Create id and store the data
-            requests.add_request(data['device_type'], data['fault_description'])
-            index = requests.number_of_requests()-1
-            return jsonify(
-                {
-                    'status':'OK',
-                    'message': 'Request created successfully',
-                    'device-status': requests.get_request(index)['device_status'],
-                    'device-type': requests.get_request(index)['device_type'],
-                    'request-id': requests.get_request(index)['id']
-                }
-            ), 201
-    except AttributeError:
+    if data['device_type'].isalnum() == False or data['fault_description'].isalnum() == False:
         return jsonify(
             {
-                'status':'FAILED',
+                'status': 'FAILED',
+                'message': 'Invalid input. Check for symbols'
+            }
+        ), 400
+    try:
+        if isinstance(data['device_type'].encode(), str) and isinstance(data['fault_description'].encode(), str):
+            # Create id and store the data
+            _request = database.add_request(
+                current_user['id'], data['device_type'], data['fault_description'])
+            id = _request['id']
+            return jsonify(
+                {
+                    'status': 'OK',
+                    'message': 'Request created successfully',
+                    'device-status': database.get_request(id)['device_status'],
+                    'device-type': database.get_request(id)['device_type'],
+                    'request-id': database.get_request(id)['id']
+                }
+            ), 201
+    except:
+        return jsonify(
+            {
+                'status': 'FAILED',
                 'message': 'Invalid request. Please check your entry',
             }
         ), 400
 
-#Fetch all requests of a logged in user
-@app.route('/v1/users/requests', methods = ['GET'])
-def view_requests():
-    if requests.number_of_requests < 1:
+# Fetch all requests of a logged in user
+
+
+@app.route('/v1/users/requests', methods=['GET'])
+@auth.token_required
+def view_requests(current_user):
+    try:
         return jsonify(
             {
-                'status':'FAILED',
-                'message': 'No requests added',
-            }
-        ), 400
-    return jsonify(
-            {
-            'number of requests': requests.number_of_requests(),
-            'status':'OK', 
-            'message':'successful',
-            'requests': requests.get_all_requests() 
+                'status': 'OK',
+                'message': 'successful',
+                'requests': database.get_user_requests(current_user['id'])
             }
         ), 200
-        
+    except:
+        return jsonify(
+            {
+                'status': 'FAILED',
+                'message': 'No requests added',
+            }
+        ), 404
 
-#Fetch a request that belongs to a logged in user
-@app.route('/v1/users/requests/<int:id>', methods = ['GET'])
-def view_user_requests(id):
-    try:     
-        # Validate request
-        if isinstance(id, int):
+# Fetch a request that belongs to a logged in user
+
+
+@app.route('/v1/users/requests/<id>', methods=['GET'])
+@auth.token_required
+def view_user_requests(current_user, id):
+    # Catch request for an id that does not exist in db
+    try:
+        # Test if correct user
+        request = database.get_request(id)
+        if request['user_id'] == current_user['id']:
+            # Validate request
             return jsonify(
                 {
-                'status':'OK', 
-                'message':'successful',
-                'device-type': requests.get_request(id-1)['device_type'],
-                'fault description': requests.get_request(id-1)['fault_description'],
-                'device-status': requests.get_request(id-1)['device_status'],
-                'id': requests.get_request(id-1)['id']
+                    'status': 'OK',
+                    'message': 'successful',
+                    'device-type': database.get_request(id)['device_type'],
+                    'fault description': database.get_request(id)['fault_description'],
+                    'device-status': database.get_request(id)['device_status'],
+                    'id': database.get_request(id)['id']
                 }
             ), 200
-    # Catch none integer input
-    except  ValueError:
         return jsonify(
             {
-                'status':'FAILED',
-                'message':'Invalid request id'
+                'status': 'FAILED',
+                'message': 'You do not have access to this request.'
             }
-        ), 400
-    # Catch request for non-existent id
-    except IndexError:
+        ), 404
+    except:
         return jsonify(
             {
-                'status':'FAILED',
-                'message':'Your request id does not exist'
+                'status': 'FAILED',
+                'message': 'This request does not exist'
             }
-        ), 400
+        ), 404
 
-#Modify a request
-@app.route('/v1/users/requests/<int:id>', methods = ['PUT'])
-def modify_requests(id):
+# Modify a request
+
+
+@app.route('/v1/users/requests/<id>', methods=['PUT'])
+@auth.token_required
+def modify_requests(current_user, id):
+    # Test if status is approved
+    try:
+        modify_request = database.get_request(id)
+        if modify_request['user_id'] != current_user['id']:
+            return jsonify(
+                {
+                    'status': 'FAILED',
+                    'message': 'Access denied. This request belongs to another user.'
+                }
+            ), 400
+        if modify_request['device_status'] == 'Approved':
+            return jsonify(
+                {
+                    'status': 'FAILED',
+                    'message': 'This request cannot be modified at this time. It has already been approved.'
+                }
+            ), 400
+    except:
+        return jsonify(
+            {
+                'status': 'FAILED',
+                'message': 'This request does not exist.'
+            }
+        ), 400
     # Retrieve the request
     data = request.get_json()
     # Validate the data
-    if data['device_type'] == "" or data['fault_description'] == "":
-        return jsonify (
+    if data['device_type'].strip(" ") == "" or data['fault_description'].strip(" ") == "":
+        return jsonify(
             {
-                'status': 'OK',
+                'status': 'FAILED',
                 'message': 'One of the required fields is empty'
-        }
-        )
+            }
+        ), 400
+    elif data['device_type'].isalnum() == False or data['fault_description'].isalnum() == False:
+        return jsonify(
+            {
+                'status': 'FAILED',
+                'message': 'Invalid input. Check for symbols'
+            }
+        ), 400
     try:
-        if isinstance(data['device_type'].encode(), str) and isinstance(data['fault_description'].encode(), str) and isinstance(id, int):
-            # Store the data 
-            requests.modify_request(id, data['device_type'], data['fault_description'])
+        if isinstance(data['device_type'].encode(), str) and isinstance(data['fault_description'].encode(), str):
+            # Store the data
+            _request = database.modify_request(
+                id, data['device_type'], data['fault_description'])
+            _id = _request['id']
             return jsonify(
                 {
-                'status': 'OK',
-                'device-type': requests.get_request(id-1)['device_type'],
-                'fault-description': requests.get_request(id-1)['fault_description'],
-                'message': 'A request was modified',
-                'request-id': requests.get_request(id-1)['id'],
-                'device-status': requests.get_request(id-1)['device_status']
+                    'status': 'OK',
+                    'device-type': database.get_request(_id)['device_type'],
+                    'fault-description': database.get_request(_id)['fault_description'],
+                    'message': 'A request was modified',
+                    'request-id': database.get_request(_id)['id'],
+                    'device-status': database.get_request(_id)['device_status']
                 }
-            ), 200    
+            ), 200
     except AttributeError:
         return jsonify(
             {
-            'status': 'FAIL',
-            'message': 'Failed to modify a request. Data is invalid'
+                'status': 'FAIL',
+                'message': 'Failed to modify a request. Data is invalid'
             }
         ), 400
-    except IndexError:
+
+
+# Admin fetch all requests of all users
+@app.route('/v1/requests', methods=['GET'])
+@auth.token_required
+def admin_view_requests(current_user):
+    # Test if admin
+    user = database.get_user_byid(current_user['id'])
+    # Add test for requests in db
+    if user['admin'] == False:
         return jsonify(
             {
-            'status': 'FAIL',
-            'message': 'Request id out of range'
+                'status': 'FAILED',
+                'message': 'You do not have these permissions',
             }
         ), 400
+    return jsonify(
+        {
+            'status': 'OK',
+            'message': 'successful',
+            'requests': database.get_all_requests()
+        }
+    ), 200
+
+
+# Admin approve a request
+@app.route('/v1/requests/<id>/approve', methods=['PUT'])
+@auth.token_required
+def admin_approve_request(current_user, id):
+    try:
+        # Retrieve user
+        user = database.get_user_byid(current_user['id'])
+        # Test if admin
+        if user['admin'] == True:
+            approve_request = database.get_request(id)
+            if approve_request['device_status'] != 'Pending':
+                return jsonify(
+                    {
+                        'status': 'FAILED',
+                        'message': 'This request cannot be approved at the this time. It is not pending'
+                    }
+                )
+            _request = database.modify_status(id, 'Approved')
+            _id = _request['id']
+            return jsonify(
+                {
+                    'status': 'OK',
+                    'device-type': database.get_request(_id)['device_type'],
+                    'fault-description': database.get_request(_id)['fault_description'],
+                    'message': 'A request was modified',
+                    'request-id': database.get_request(_id)['id'],
+                    'device-status': database.get_request(_id)['device_status']
+                }
+            ), 200
+        return jsonify(
+            {
+                'status': 'FAILED',
+                'message': 'Access denied. Your do not have these rights.'
+            }
+        ), 400
+    except:
+        return jsonify(
+            {
+                'status': 'FAILED',
+                'message': 'Invalid entry. Please check your request id.'
+            }
+        ), 400
+
+
+# Admin disapprove a request
+@app.route('/v1/requests/<id>/disapprove', methods=['PUT'])
+@auth.token_required
+def admin_disapprove_request(current_user, id):
+    # Retrieve user
+    user = database.get_user_byid(current_user['id'])
+    # Test if admin
+    if user['admin'] == True:
+        try:
+            _request = database.modify_status(id, 'Disapproved')
+            _id = _request['id']
+            return jsonify(
+                {
+                    'status': 'OK',
+                    'device-type': database.get_request(_id)['device_type'],
+                    'fault-description': database.get_request(_id)['fault_description'],
+                    'message': 'A request was modified',
+                    'request-id': database.get_request(_id)['id'],
+                    'device-status': database.get_request(_id)['device_status']
+                }
+            ), 200
+        except:
+            return jsonify(
+                {
+                    'status': 'FAILED',
+                    'message': 'Invalid request id. Id does not match any of your requests.'
+                }
+            ), 400
+    return jsonify(
+        {
+            'status': 'FAILED',
+            'message': 'Access denied. Your do not have these rights.'
+        }
+    ), 400
+
+# Admin resolve a request
+
+
+@app.route('/v1/requests/<id>/resolve', methods=['PUT'])
+@auth.token_required
+def admin_resolve_request(current_user, id):
+    # Retrieve user
+    user = database.get_user_byid(current_user['id'])
+    # Test if admin
+    if user['admin'] == True:
+        try:
+            _request = database.modify_status(id, 'Resolved')
+            _id = _request['id']
+            return jsonify(
+                {
+                    'status': 'OK',
+                    'device-type': database.get_request(_id)['device_type'],
+                    'fault-description': database.get_request(_id)['fault_description'],
+                    'message': 'A request was modified',
+                    'request-id': database.get_request(_id)['id'],
+                    'device-status': database.get_request(_id)['device_status']
+                }
+            ), 200
+        except:
+            return jsonify(
+                {
+                    'status': 'FAILED',
+                    'message': 'Invalid request id. Id does not match any of your requests.'
+                }
+            ), 400
+    return jsonify(
+        {
+            'status': 'FAILED',
+            'message': 'Access denied. Your do not have these rights.'
+        }
+    ), 400
