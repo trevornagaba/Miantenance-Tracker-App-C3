@@ -118,6 +118,6 @@ class Auth():
         except:
             return jsonify(
                 {
-                    'message': 'Could not verify, no user found'
+                    'message': 'Could not verify. No user found.'
                 }
             ), 400
