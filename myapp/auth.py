@@ -46,7 +46,7 @@ class Auth():
         hashed_password = generate_password_hash(
             data['password'], method='sha256')
         # Validate the data
-        if not data['username'] or not data['password'] or not data['reenter_password']:
+        if not data['username'].strip(" ") or not data['password'].strip(" ") or not data['reenter_password'].strip(" "):
             return jsonify(
                 {
                     'message': 'One of the required fields is missing.'
@@ -56,6 +56,13 @@ class Auth():
             return jsonify(
                 {
                     'message': 'Your passwords do not match'
+                }
+            ), 400
+        if data['username'].isalnum() == False or data['password'].isalnum() == False or data['reenter_password'].isalnum() == False:
+            return jsonify(
+                {
+                    'status': 'FAILED',
+                    'message': 'Invalid input. Check for symbols'
                 }
             ), 400
 
@@ -86,7 +93,7 @@ class Auth():
 
         data = request.get_json()
 
-        if not data['username'] or not data['password']:
+        if not data['username'].strip(" ") or not data['password'].strip(" "):
             return jsonify(
                 {
                     'message': 'One of your login fields is missing.'

@@ -21,11 +21,18 @@ def create_requests(current_user):
     # Retrieve the data
     data = request.get_json()
     # Validate the data
-    if data['device_type'] == "" or data['fault_description'] == "":
+    if data['device_type'].strip(" ") == "" or data['fault_description'].strip(" ") == "":
         return jsonify(
             {
                 'status': 'FAILED',
                 'message': 'One of the required fields is empty'
+            }
+        ), 400
+    if data['device_type'].isalnum() == False or data['fault_description'].isalnum() == False:
+        return jsonify(
+            {
+                'status': 'FAILED',
+                'message': 'Invalid input. Check for symbols'
             }
         ), 400
     try:
@@ -43,7 +50,7 @@ def create_requests(current_user):
                     'request-id': database.get_request(id)['id']
                 }
             ), 201
-    except AttributeError:
+    except:
         return jsonify(
             {
                 'status': 'FAILED',
@@ -142,11 +149,18 @@ def modify_requests(current_user, id):
     # Retrieve the request
     data = request.get_json()
     # Validate the data
-    if data['device_type'] == "" or data['fault_description'] == "":
+    if data['device_type'].strip(" ") == "" or data['fault_description'].strip(" ") == "":
         return jsonify(
             {
                 'status': 'FAILED',
                 'message': 'One of the required fields is empty'
+            }
+        ), 400
+    elif data['device_type'].isalnum() == False or data['fault_description'].isalnum() == False:
+        return jsonify(
+            {
+                'status': 'FAILED',
+                'message': 'Invalid input. Check for symbols'
             }
         ), 400
     try:

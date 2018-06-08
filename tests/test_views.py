@@ -27,7 +27,7 @@ class MyTests(TestCase):
         )
         self.post_data = (
             {
-                "device_type": "laptop",
+                "device_type": "Laptop",
                 "fault_description": "Battery malfunctioning"
             }
         )
@@ -39,9 +39,10 @@ class MyTests(TestCase):
         )
         return app
 
-    # Test the create a request endpoint
+    # Test the create a request endpoint with white space input
     def test_create_requests(self):
         with self.client:
+            self.post_data['device_type'] = '   '
             # Login
             response = self.client.post(
                 '/v1/auth/login',
@@ -57,9 +58,9 @@ class MyTests(TestCase):
                 headers={'x-access-token': token}
             )
             reply_2 = json.loads(response_2.data.decode())
-            self.assertTrue(
-                reply_2['device-status'] in ['Pending', 'Disapproved', 'Approved', 'Resolved'], True)
-            self.assertEquals(response_2.status_code, 201)
+            self.assertEquals(
+                reply_2['message'], 'One of the required fields is empty')
+            self.assertEquals(response_2.status_code, 400)
 
     # Test the view all requests endpoint
     def test_view_requests(self):
@@ -100,9 +101,10 @@ class MyTests(TestCase):
             self.assertEquals(reply_2['message'], 'successful')
             self.assertTrue(response_2.status_code, 200)
 
-    # Test the modify a request endpoint
+    # Test the modify a request endpoint with special characters input
     def test_modify_request(self):
         with self.client:
+            self.modify_data['username'] = '@#$$%^^'
             # Login
             response = self.client.post(
                 '/v1/auth/login',
@@ -118,13 +120,11 @@ class MyTests(TestCase):
                 headers={'x-access-token': token}
             )
             reply_2 = json.loads(response_2.data.decode())
-            self.assertTrue(
-                reply_2['device-status'] in ['Pending', 'Disapproved', 'Approved', 'Resolved'], True)
-            self.assertEquals(reply_2['device-type'],
-                              self.modify_data['device_type'])
-            self.assertEquals(response_2.status_code, 200)
+            self.assertEquals(reply_2['message'],
+                              'Invalid input. Check for symbols')
+            self.assertEquals(response_2.status_code, 400)
 
-    # Test the admin approve a request endpoint
+    # Test the admin approve a request endpoint for failure
     def test_admin_approve_request(self):
         with self.client:
             # Login
@@ -142,9 +142,8 @@ class MyTests(TestCase):
                 headers={'x-access-token': token}
             )
             reply_2 = json.loads(response_2.data.decode())
-            self.assertEquals(reply_2['device-status'], 'Approved')
-            self.assertEquals(reply_2['device-type'],
-                              self.modify_data['device_type'])
+            self.assertEquals(
+                reply_2['message'], 'This request cannot be approved at the this time. It is not pending')
             self.assertEquals(response_2.status_code, 200)
 
     # Test the admin disapprove a request endpoint
