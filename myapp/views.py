@@ -156,7 +156,7 @@ def modify_requests(current_user, id):
                 'message': 'One of the required fields is empty'
             }
         ), 400
-    elif data['device_type'].isalnum() == False or data['fault_description'].isalnum() == False:
+    if data['device_type'].isalnum() == False or data['fault_description'].isalnum() == False:
         return jsonify(
             {
                 'status': 'FAILED',
@@ -280,7 +280,7 @@ def admin_disapprove_request(current_user, id):
             return jsonify(
                 {
                     'status': 'FAILED',
-                    'message': 'Invalid request id. Id does not match any of your requests.'
+                    'message': 'Invalid request id. Id does not match any of the requests.'
                 }
             ), 400
     return jsonify(
