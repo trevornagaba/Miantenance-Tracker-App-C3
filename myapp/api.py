@@ -7,7 +7,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
 import datetime
 from functools import wraps
-from myapp._auth import Auth
+from myapp.auth import Auth
 from flask.views import MethodView
 
 # app.config['SECRET KEY'] = 'thisissecret'

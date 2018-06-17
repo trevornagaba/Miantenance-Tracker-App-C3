@@ -2,7 +2,7 @@ from myapp import app
 from myapp import views
 from myapp import api
 from myapp import auth
-from myapp._views import user_requests, admin_requests, auth_requests
+from myapp.views import user_requests, admin_requests, auth_requests
 
 
 if __name__ == '__main__':

@@ -62,7 +62,8 @@ class MyTests(TestCase):
                 data=json.dumps(self.signup_data)
             )
             reply = json.loads(response.data.decode())
-            self.assertEquals(reply['message'], 'Invalid input. Check for symbols')
+            self.assertEquals(reply['message'],
+                              'Invalid input. Check for symbols')
             self.assertEquals(response.status_code, 400)
 
     # Test for successful user login
@@ -90,7 +91,8 @@ class MyTests(TestCase):
             )
             reply = json.loads(response.data.decode())
             self.assertEquals(
-                reply['message'], 'Could not verify. Please check your login details')
+                reply['message'],
+                'Could not verify. Please check your login details')
             self.assertEquals(response.status_code, 400)
 
     # Test for loginup with unknown user
@@ -103,7 +105,8 @@ class MyTests(TestCase):
                 data=json.dumps(self.login_data)
             )
             reply = json.loads(response.data.decode())
-            self.assertEquals(reply['message'], 'Could not verify. No user found.')
+            self.assertEquals(reply['message'],
+                              'Could not verify. No user found.')
             self.assertEquals(response.status_code, 400)
 
         # Test for loginup with missing field
@@ -116,5 +119,6 @@ class MyTests(TestCase):
                 data=json.dumps(self.login_data)
             )
             reply = json.loads(response.data.decode())
-            self.assertEquals(reply['message'], 'One of your login fields is missing.')
+            self.assertEquals(reply['message'],
+                              'One of your login fields is missing.')
             self.assertEquals(response.status_code, 400)

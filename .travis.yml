@@ -6,7 +6,7 @@ install:
   - pip install -r requirements.txt
 
 script:
-  - nose2 --with-coverage
+  - pytest
 
 after_success:
   - coveralls
