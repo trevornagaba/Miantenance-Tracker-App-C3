@@ -15,10 +15,7 @@ auth_requests_view = Auth.as_view('auth_requests')
 
 
 user_requests.add_url_rule('/v1/users/requests',
-                           view_func=user_requests_view, methods=['POST'])
-
-user_requests.add_url_rule('/v1/users/requests', view_func=user_requests_view,
-                           methods=['GET'])
+                           view_func=user_requests_view, methods=['GET', 'POST'])
 
 user_requests.add_url_rule('/v1/users/requests/<id>',
                            view_func=user_requests_view, methods=['GET', 'PUT'])
