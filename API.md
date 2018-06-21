@@ -261,7 +261,7 @@ An admin can either approve, disaaprove or resolve a request. Only pending reque
     + id (string) - ID of the desired request.
     + action (string) - Either approve, disapprove or resolve.
 
-+ Response 200 (application/json)\
++ Response 200 (application/json)
 
     + Body 
 
