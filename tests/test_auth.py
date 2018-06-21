@@ -1,5 +1,5 @@
 from flask_testing import TestCase
-from run import app
+from myapp import app
 import json
 
 
@@ -20,7 +20,7 @@ class MyTests(TestCase):
         )
         self.signup_data = (
             {
-                'username': 'Jackie',
+                'username': 'Jack',
                 'password': 'password',
                 'reenter_password': 'password'
             }
@@ -35,9 +35,9 @@ class MyTests(TestCase):
                 content_type='application/json',
                 data=json.dumps(self.signup_data)
             )
-            reply = json.loads(response.data.decode())
-            self.assertEquals(reply['message'], 'Invalid username')
-            self.assertEquals(response.status_code, 400)
+            reply = response.data
+            self.assertEquals(reply, 'Invalid username')
+            self.assertEquals(response.status_code, 200)
 
     # Test for signup with wrong reenter_password
     def test_signup_fail(self):
@@ -48,7 +48,7 @@ class MyTests(TestCase):
                 content_type='application/json',
                 data=json.dumps(self.signup_data)
             )
-            reply = json.loads(response.data.decode())
+            reply = response.data
             self.assertEquals(reply['message'], 'Your passwords do not match')
             self.assertEquals(response.status_code, 400)
 
@@ -61,7 +61,7 @@ class MyTests(TestCase):
                 content_type='application/json',
                 data=json.dumps(self.signup_data)
             )
-            reply = json.loads(response.data.decode())
+            reply = response.data
             self.assertEquals(reply['message'],
                               'Invalid input. Check for symbols')
             self.assertEquals(response.status_code, 400)
@@ -74,7 +74,7 @@ class MyTests(TestCase):
                 content_type='application/json',
                 data=json.dumps(self.login_data),
             )
-            reply = json.loads(response.data.decode())
+            reply = response.data
             self.assertEquals(
                 reply['user']['username'], self.login_data['username'])
             self.assertEquals(response.status_code, 201)
@@ -89,7 +89,7 @@ class MyTests(TestCase):
                 content_type='application/json',
                 data=json.dumps(self.login_data)
             )
-            reply = json.loads(response.data.decode())
+            reply = response.data
             self.assertEquals(
                 reply['message'],
                 'Could not verify. Please check your login details')
@@ -104,7 +104,7 @@ class MyTests(TestCase):
                 content_type='application/json',
                 data=json.dumps(self.login_data)
             )
-            reply = json.loads(response.data.decode())
+            reply = response.data
             self.assertEquals(reply['message'],
                               'Could not verify. No user found.')
             self.assertEquals(response.status_code, 400)
@@ -118,7 +118,7 @@ class MyTests(TestCase):
                 content_type='application/json',
                 data=json.dumps(self.login_data)
             )
-            reply = json.loads(response.data.decode())
+            reply = response.data
             self.assertEquals(reply['message'],
                               'One of your login fields is missing.')
             self.assertEquals(response.status_code, 400)
