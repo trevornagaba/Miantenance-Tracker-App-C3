@@ -10,6 +10,9 @@ Resources related to users in the API.
 
 ## Authorization Collection [/v1/auth/{action}]
 
++ Parameters
+    + action (string) - Either login or signup
+
 ### Login [POST]
 
 A user may login to his/her own account using this action. It takes a JSON object containing username and password.
@@ -28,6 +31,7 @@ A user may login to his/her own account using this action. It takes a JSON objec
 + Response 201 (application/json)
 
     + Body
+    
             {
                 "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6ImNhM2MxM2IwLTcyMzgtMTFlOC04Yzc1LWE4YTc5NWI1OWI2NiIsImV4cCI6MTUyOTQxODA1Mn0.lPVhPRDOqDrfw2Nb7dDLkeJYIfFxHFDtNVc3bBZ_H98",
                 "user": {
@@ -59,6 +63,7 @@ A user may create his/her own account using this action. It takes a JSON object 
 + Response 201 (application/json)
 
     + Body
+
             {
                 "message": "User registered",
                 "status": "OK",
@@ -94,6 +99,7 @@ A user may create his/her own request using this action. It takes a JSON object 
 + Response 201 (application/json)
 
     + Body
+
             {
                 "device-status": "Pending",
                 "device-type": "Laptop",
@@ -154,15 +160,17 @@ A user may view all his/her requests.
 
 ## Single Request Collection [/v1/users/requests/{id}]
 
++ Parameters
+    + id (string) - ID of the desired request.
+
 ### View Single Request [GET]
 
 A user may view a single request.
 
-+ id (string) - ID of the desired request.
-
-+ Response 
++ Response 200 (application/json)
 
     + Body
+
             {
                 "device-status": "Pending",
                 "device-type": "Laptop",
@@ -174,14 +182,95 @@ A user may view a single request.
 
 ### Modify single request [PUT]
 
-+ Response 
+A user may modify a pending request. It takes JSON object containing 'device type' and fault description. 
+
++ device type (string) - The type of device for which repair is required.
+
++ fault description (string) - The issue that needs attention.
+
++ id (string) - ID of the desired request.
+
++ Request (application/json)
+
+        {
+            "device_type": "Computer",
+            "fault_description": "Crackedscreen"
+        }
+
++ Response 200 (application/json) 
+
+    + Body 
+
+            {
+                "device-status": "Pending",
+                "device-type": "Computer",
+                "fault-description": "Crackedscreen",
+                "message": "A request was modified",
+                "request-id": "61fc5e4f-7241-11e8-9b11-a8a795b59b66",
+                "status": "OK"
+            }
 
 ## Admin Requests [/v1/requests]
 
-+ Response 
+An admin can view all requests registered.
+
++ Response 200 (application/json)
+    
+    + Body 
+
+            {
+                "message": "successful",
+                "requests": [
+                    {
+                        "device_status": "Approved",
+                        "device_type": "Edgars Phone",
+                        "fault_description": "Dead battery",
+                        "id": "84935fc0-6a32-11e8-bb85-caca35d9aa6d",
+                        "user_id": "a9115521-6a30-11e8-8d13-caca35d9aa6d"
+                    },
+                    {
+                        "device_status": "Pending",
+                        "device_type": "Edgars Phone",
+                        "fault_description": "Dead battery",
+                        "id": "2ac1c5f0-6a45-11e8-9e31-caca35d9aa6d",
+                        "user_id": "fda80ecf-6a44-11e8-afb1-caca35d9aa6d"
+                    },
+                    {
+                        "device_status": "Pending",
+                        "device_type": "   ",
+                        "fault_description": "   ",
+                        "id": "58fddd00-6a45-11e8-b7e9-caca35d9aa6d",
+                        "user_id": "fda80ecf-6a44-11e8-afb1-caca35d9aa6d"
+                    },
+                    {
+                        "device_status": "Pending",
+                        "device_type": "@#$%^&&&&&",
+                        "fault_description": "@#$%^&",
+                        "id": "66b1188f-6a45-11e8-86dc-caca35d9aa6d",
+                        "user_id": "fda80ecf-6a44-11e8-afb1-caca35d9aa6d"
+                    }
+                ],
+                "status": "OK"
+            }
 
 ## Admin Modify Requests [/v1/requests/{id}/{action}]
 
-+ Response 
+An admin can either approve, disaaprove or resolve a request. Only pending requests can be approved.
 
++ Parameters
+    + id (string) - ID of the desired request.
+    + action (string) - Either approve, disapprove or resolve.
+
++ Response 200 (application/json)\
+
+    + Body 
+
+            {
+                "device-status": "Disapproved",
+                "device-type": "Edgars Phone",
+                "fault-description": "Dead battery",
+                "message": "A request was modified",
+                "request-id": "2ac1c5f0-6a45-11e8-9e31-caca35d9aa6d",
+                "status": "OK"
+            }
 
