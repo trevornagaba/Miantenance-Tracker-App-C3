@@ -102,15 +102,75 @@ A user may create his/her own request using this action. It takes a JSON object 
                     "status": "OK"
                 }
 
-### View All Requests [POST]
+### View All Requests [GET]
 
-+ Response 
+A user may view all his/her requests. 
+
++ Response 200 (application/json)
+
+    + Body
+
+                {
+                    "message": "successful",
+                    "requests": [
+                        {
+                            "device_status": "Pending",
+                            "device_type": "Laptop",
+                            "fault_description": "Nosignal",
+                            "id": "f1c59a61-7241-11e8-8a51-a8a795b59b66",
+                            "user_id": "ca3c13b0-7238-11e8-8c75-a8a795b59b66"
+                        },
+                        {
+                            "device_status": "Pending",
+                            "device_type": "Laptop",
+                            "fault_description": "Nosignal",
+                            "id": "05b712b0-72d3-11e8-ad08-a8a795b59b66",
+                            "user_id": "ca3c13b0-7238-11e8-8c75-a8a795b59b66"
+                        },
+                        {
+                            "device_status": "Pending",
+                            "device_type": "Laptop",
+                            "fault_description": "Nosignal",
+                            "id": "960eb9f6-72d5-11e8-bf9c-a8a795b59b66",
+                            "user_id": "ca3c13b0-7238-11e8-8c75-a8a795b59b66"
+                        },
+                        {
+                            "device_status": "Pending",
+                            "device_type": "Laptop",
+                            "fault_description": "Nosignal",
+                            "id": "a94e2bb8-72d5-11e8-9636-a8a795b59b66",
+                            "user_id": "ca3c13b0-7238-11e8-8c75-a8a795b59b66"
+                        },
+                        {
+                            "device_status": "Pending",
+                            "device_type": "Computer",
+                            "fault_description": "Crackedscreen",
+                            "id": "61fc5e4f-7241-11e8-9b11-a8a795b59b66",
+                            "user_id": "ca3c13b0-7238-11e8-8c75-a8a795b59b66"
+                        }
+                    ],
+                    "status": "OK"
+                }
 
 ## Single Request Collection [/v1/users/requests/{id}]
 
 ### View Single Request [GET]
 
+A user may view a single request.
+
++ id (string) - ID of the desired request.
+
 + Response 
+
+    + Body
+                {
+                    "device-status": "Pending",
+                    "device-type": "Laptop",
+                    "fault description": "Nosignal",
+                    "id": "f1c59a61-7241-11e8-8a51-a8a795b59b66",
+                    "message": "successful",
+                    "status": "OK"
+                }        
 
 ### Modify single request [PUT]
 
