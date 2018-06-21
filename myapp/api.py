@@ -7,7 +7,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
 import datetime
 from functools import wraps
-from myapp._auth import Auth
+from myapp.auth import Auth
 from flask.views import MethodView
 
 # app.config['SECRET KEY'] = 'thisissecret'
@@ -37,7 +37,7 @@ class UserRequests(MethodView):
                 }
             ), 400
         try:
-            if isinstance(data['device_type'].encode(), str) and isinstance(data['fault_description'].encode(), str):
+            if isinstance(data['device_type'], str) and isinstance(data['fault_description'], str):
                 # Create id and store the data
                 _request = database.add_request(
                     current_user['id'], data['device_type'], data['fault_description'])
@@ -153,7 +153,7 @@ class UserRequests(MethodView):
                 }
             ), 400
         try:
-            if isinstance(data['device_type'].encode(), str) and isinstance(data['fault_description'].encode(), str):
+            if isinstance(data['device_type'], str) and isinstance(data['fault_description'], str):
                 # Store the data
                 _request = database.modify_request(
                     id, data['device_type'], data['fault_description'])

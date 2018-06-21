@@ -47,13 +47,13 @@ class MyTests(TestCase):
                 content_type='application/json',
                 data=json.dumps(self.login_data)
             )
-            reply = json.loads(response.data.decode())
+            reply = response.get_json()
             token = reply['token']
             response_2 = self.client.get(
                 '/v1/users/requests',
                 headers={'x-access-token': token}
             )
-            reply_2 = json.loads(response_2.data.decode())
+            reply_2 = response_2.data
             self.assertEquals(reply_2['message'], 'successful')
             self.assertEquals(response_2.status_code, 200)
 
@@ -66,13 +66,13 @@ class MyTests(TestCase):
                 content_type='application/json',
                 data=json.dumps(self.login_data)
             )
-            reply = json.loads(response.data.decode())
+            reply = response.data
             token = reply['token']
             response_2 = self.client.get(
                 '/v1/users/requests/b57fc28f-6a5a-11e8-b0d5-a8a795b59b66',
                 headers={'x-access-token': token}
             )
-            reply_2 = json.loads(response_2.data.decode())
+            reply_2 = response_2.data
             self.assertTrue(
                 reply_2['device-status'] in ['Pending', 'Disapproved', 'Approved', 'Resolved'], True)
             self.assertEquals(reply_2['message'], 'successful')
@@ -87,13 +87,13 @@ class MyTests(TestCase):
                 content_type='application/json',
                 data=json.dumps(self.login_data)
             )
-            reply = json.loads(response.data.decode())
+            reply = response.data
             token = reply['token']
             response_2 = self.client.get(
                 '/v1/users/requests/66b1188f-6a45-11e8-86dc-caca35d9aa6d',
                 headers={'x-access-token': token}
             )
-            reply_2 = json.loads(response_2.data.decode())
+            reply_2 = response_2.data
             self.assertEquals(reply_2['message'], 'You do not have access to this request.')
             self.assertTrue(response_2.status_code, 200)
 
@@ -107,7 +107,7 @@ class MyTests(TestCase):
                 content_type='application/json',
                 data=json.dumps(self.login_data)
             )
-            reply = json.loads(response.data.decode())
+            reply = response.data
             token = reply['token']
             response_2 = self.client.post(
                 '/v1/users/requests',
@@ -115,7 +115,7 @@ class MyTests(TestCase):
                 data=json.dumps(self.post_data),
                 headers={'x-access-token': token}
             )
-            reply_2 = json.loads(response_2.data.decode())
+            reply_2 = response_2.data
             self.assertEquals(
                 reply_2['message'], 'One of the required fields is empty')
             self.assertEquals(response_2.status_code, 400)
@@ -130,7 +130,7 @@ class MyTests(TestCase):
                 content_type='application/json',
                 data=json.dumps(self.login_data)
             )
-            reply = json.loads(response.data.decode())
+            reply = response.data
             token = reply['token']
             response_2 = self.client.put(
                 '/v1/users/requests/034044cf-6a58-11e8-b842-a8a795b59b66',
@@ -138,7 +138,7 @@ class MyTests(TestCase):
                 data=json.dumps(self.modify_data),
                 headers={'x-access-token': token}
             )
-            reply_2 = json.loads(response_2.data.decode())
+            reply_2 = response_2.data
             self.assertEquals(reply_2['message'],
                               'Invalid input. Check for symbols')
             self.assertEquals(response_2.status_code, 400)
@@ -152,7 +152,7 @@ class MyTests(TestCase):
                 content_type='application/json',
                 data=json.dumps(self.admin_login_data)
             )
-            reply = json.loads(response.data.decode())
+            reply = response.data
             token = reply['token']
             response_2 = self.client.put(
                 '/v1/requests/034044cf-6a58-11e8-b842-a8a795b59b66/approve',
@@ -160,7 +160,7 @@ class MyTests(TestCase):
                 data=json.dumps(self.modify_data),
                 headers={'x-access-token': token}
             )
-            reply_2 = json.loads(response_2.data.decode())
+            reply_2 = response_2.data
             self.assertEquals(
                 reply_2['message'], 'This request cannot be approved at the this time. It is not pending')
             self.assertEquals(response_2.status_code, 200)
@@ -174,7 +174,7 @@ class MyTests(TestCase):
                 content_type='application/json',
                 data=json.dumps(self.admin_login_data)
             )
-            reply = json.loads(response.data.decode())
+            reply = response.data
             token = reply['token']
             response_2 = self.client.put(
                 '/v1/requests/034044cf-6a58-11e8-b842-a8a795b59b66/disapprove',
@@ -182,7 +182,7 @@ class MyTests(TestCase):
                 data=json.dumps(self.modify_data),
                 headers={'x-access-token': token}
             )
-            reply_2 = json.loads(response_2.data.decode())
+            reply_2 = response_2.data
             self.assertEquals(reply_2['device-status'], 'Disapproved')
             self.assertEquals(reply_2['device-type'],
                               self.modify_data['device_type'])
@@ -197,7 +197,7 @@ class MyTests(TestCase):
                 content_type='application/json',
                 data=json.dumps(self.admin_login_data)
             )
-            reply = json.loads(response.data.decode())
+            reply = response.data
             token = reply['token']
             response_2 = self.client.put(
                 '/v1/requests/034044cf-6a58-11e8-b842-a8a795/disapprove',
@@ -205,7 +205,7 @@ class MyTests(TestCase):
                 data=json.dumps(self.modify_data),
                 headers={'x-access-token': token}
             )
-            reply_2 = json.loads(response_2.data.decode())
+            reply_2 = response_2.data
             self.assertEquals(reply_2['message'], 'Invalid request id. Id does not match any of the requests.')
             self.assertEquals(response_2.status_code, 400)
 
@@ -218,7 +218,7 @@ class MyTests(TestCase):
                 content_type='application/json',
                 data=json.dumps(self.admin_login_data)
             )
-            reply = json.loads(response.data.decode())
+            reply = response.data
             token = reply['token']
             response_2 = self.client.put(
                 '/v1/requests/034044cf-6a58-11e8-b842-a8a795b59b66/resolve',
@@ -226,7 +226,7 @@ class MyTests(TestCase):
                 data=json.dumps(self.modify_data),
                 headers={'x-access-token': token}
             )
-            reply_2 = json.loads(response_2.data.decode())
+            reply_2 = response_2.data
             self.assertEquals(reply_2['device-status'], 'Resolved')
             self.assertEquals(reply_2['device-type'],
                               self.modify_data['device_type'])
@@ -241,14 +241,14 @@ class MyTests(TestCase):
                 content_type='application/json',
                 data=json.dumps(self.admin_login_data)
             )
-            reply = json.loads(response.data.decode())
+            reply = response.data
             token = reply['token']
             response_2 = self.client.get(
                 '/v1/requests',
                 data=json.dumps(self.modify_data),
                 headers={'x-access-token': token}
             )
-            reply_2 = json.loads(response_2.data.decode())
+            reply_2 = response_2.data
             self.assertEquals(reply_2['message'], 'successful')
             self.assertEquals(response_2.status_code, 200)
 
@@ -261,13 +261,13 @@ class MyTests(TestCase):
                 content_type='application/json',
                 data=json.dumps(self.login_data)
             )
-            reply = json.loads(response.data.decode())
+            reply = response.data
             token = reply['token']
             response_2 = self.client.get(
                 '/v1/requests',
                 data=json.dumps(self.modify_data),
                 headers={'x-access-token': token}
             )
-            reply_2 = json.loads(response_2.data.decode())
+            reply_2 = response_2.data
             self.assertEquals(reply_2['message'], 'You do not have these permissions')
             self.assertEquals(response_2.status_code, 400)
