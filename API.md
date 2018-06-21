@@ -28,15 +28,15 @@ A user may login to his/her own account using this action. It takes a JSON objec
 + Response 201 (application/json)
 
     + Body
-                {
-                    "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6ImNhM2MxM2IwLTcyMzgtMTFlOC04Yzc1LWE4YTc5NWI1OWI2NiIsImV4cCI6MTUyOTQxODA1Mn0.lPVhPRDOqDrfw2Nb7dDLkeJYIfFxHFDtNVc3bBZ_H98",
-                    "user": {
-                        "admin": false,
-                        "id": "ca3c13b0-7238-11e8-8c75-a8a795b59b66",
-                        "password": "sha256$SfAZtjZZ$7c781551f4c9de19ffe03d8cff31c4b5ea5fc35cefeb79697dc61afa1a3c09d3",
-                        "username": "Jackson"
-                    }
+            {
+                "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6ImNhM2MxM2IwLTcyMzgtMTFlOC04Yzc1LWE4YTc5NWI1OWI2NiIsImV4cCI6MTUyOTQxODA1Mn0.lPVhPRDOqDrfw2Nb7dDLkeJYIfFxHFDtNVc3bBZ_H98",
+                "user": {
+                    "admin": false,
+                    "id": "ca3c13b0-7238-11e8-8c75-a8a795b59b66",
+                    "password": "sha256$SfAZtjZZ$7c781551f4c9de19ffe03d8cff31c4b5ea5fc35cefeb79697dc61afa1a3c09d3",
+                    "username": "Jackson"
                 }
+            }
 
 ### Signup [POST]
 
@@ -59,16 +59,16 @@ A user may create his/her own account using this action. It takes a JSON object 
 + Response 201 (application/json)
 
     + Body
-                {
-                    "message": "User registered",
-                    "status": "OK",
-                    "username": {
-                        "admin": false,
-                        "id": "5a89abd2-72d4-11e8-b0e1-a8a795b59b66",
-                        "password": "sha256$2axHCWU3$b106f9519ec507dcef526c35897029dfd61c649ce223feb2d4b58a89057e8160",
-                        "username": "Jackson"
-                    }
+            {
+                "message": "User registered",
+                "status": "OK",
+                "username": {
+                    "admin": false,
+                    "id": "5a89abd2-72d4-11e8-b0e1-a8a795b59b66",
+                    "password": "sha256$2axHCWU3$b106f9519ec507dcef526c35897029dfd61c649ce223feb2d4b58a89057e8160",
+                    "username": "Jackson"
                 }
+            }
 
 ## Group Requests
 
@@ -94,13 +94,13 @@ A user may create his/her own request using this action. It takes a JSON object 
 + Response 201 (application/json)
 
     + Body
-                {
-                    "device-status": "Pending",
-                    "device-type": "Laptop",
-                    "message": "Request created successfully",
-                    "request-id": "a94e2bb8-72d5-11e8-9636-a8a795b59b66",
-                    "status": "OK"
-                }
+            {
+                "device-status": "Pending",
+                "device-type": "Laptop",
+                "message": "Request created successfully",
+                "request-id": "a94e2bb8-72d5-11e8-9636-a8a795b59b66",
+                "status": "OK"
+            }
 
 ### View All Requests [GET]
 
@@ -110,47 +110,47 @@ A user may view all his/her requests.
 
     + Body
 
-                {
-                    "message": "successful",
-                    "requests": [
-                        {
-                            "device_status": "Pending",
-                            "device_type": "Laptop",
-                            "fault_description": "Nosignal",
-                            "id": "f1c59a61-7241-11e8-8a51-a8a795b59b66",
-                            "user_id": "ca3c13b0-7238-11e8-8c75-a8a795b59b66"
-                        },
-                        {
-                            "device_status": "Pending",
-                            "device_type": "Laptop",
-                            "fault_description": "Nosignal",
-                            "id": "05b712b0-72d3-11e8-ad08-a8a795b59b66",
-                            "user_id": "ca3c13b0-7238-11e8-8c75-a8a795b59b66"
-                        },
-                        {
-                            "device_status": "Pending",
-                            "device_type": "Laptop",
-                            "fault_description": "Nosignal",
-                            "id": "960eb9f6-72d5-11e8-bf9c-a8a795b59b66",
-                            "user_id": "ca3c13b0-7238-11e8-8c75-a8a795b59b66"
-                        },
-                        {
-                            "device_status": "Pending",
-                            "device_type": "Laptop",
-                            "fault_description": "Nosignal",
-                            "id": "a94e2bb8-72d5-11e8-9636-a8a795b59b66",
-                            "user_id": "ca3c13b0-7238-11e8-8c75-a8a795b59b66"
-                        },
-                        {
-                            "device_status": "Pending",
-                            "device_type": "Computer",
-                            "fault_description": "Crackedscreen",
-                            "id": "61fc5e4f-7241-11e8-9b11-a8a795b59b66",
-                            "user_id": "ca3c13b0-7238-11e8-8c75-a8a795b59b66"
-                        }
-                    ],
-                    "status": "OK"
-                }
+            {
+                "message": "successful",
+                "requests": [
+                    {
+                        "device_status": "Pending",
+                        "device_type": "Laptop",
+                        "fault_description": "Nosignal",
+                        "id": "f1c59a61-7241-11e8-8a51-a8a795b59b66",
+                        "user_id": "ca3c13b0-7238-11e8-8c75-a8a795b59b66"
+                    },
+                    {
+                        "device_status": "Pending",
+                        "device_type": "Laptop",
+                        "fault_description": "Nosignal",
+                        "id": "05b712b0-72d3-11e8-ad08-a8a795b59b66",
+                        "user_id": "ca3c13b0-7238-11e8-8c75-a8a795b59b66"
+                    },
+                    {
+                        "device_status": "Pending",
+                        "device_type": "Laptop",
+                        "fault_description": "Nosignal",
+                        "id": "960eb9f6-72d5-11e8-bf9c-a8a795b59b66",
+                        "user_id": "ca3c13b0-7238-11e8-8c75-a8a795b59b66"
+                    },
+                    {
+                        "device_status": "Pending",
+                        "device_type": "Laptop",
+                        "fault_description": "Nosignal",
+                        "id": "a94e2bb8-72d5-11e8-9636-a8a795b59b66",
+                        "user_id": "ca3c13b0-7238-11e8-8c75-a8a795b59b66"
+                    },
+                    {
+                        "device_status": "Pending",
+                        "device_type": "Computer",
+                        "fault_description": "Crackedscreen",
+                        "id": "61fc5e4f-7241-11e8-9b11-a8a795b59b66",
+                        "user_id": "ca3c13b0-7238-11e8-8c75-a8a795b59b66"
+                    }
+                ],
+                "status": "OK"
+            }
 
 ## Single Request Collection [/v1/users/requests/{id}]
 
@@ -163,14 +163,14 @@ A user may view a single request.
 + Response 
 
     + Body
-                {
-                    "device-status": "Pending",
-                    "device-type": "Laptop",
-                    "fault description": "Nosignal",
-                    "id": "f1c59a61-7241-11e8-8a51-a8a795b59b66",
-                    "message": "successful",
-                    "status": "OK"
-                }        
+            {
+                "device-status": "Pending",
+                "device-type": "Laptop",
+                "fault description": "Nosignal",
+                "id": "f1c59a61-7241-11e8-8a51-a8a795b59b66",
+                "message": "successful",
+                "status": "OK"
+            }        
 
 ### Modify single request [PUT]
 
