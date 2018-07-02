@@ -8,6 +8,7 @@ import jwt
 import datetime
 from functools import wraps
 from flask.views import MethodView
+from flask_cors import cross_origin
 import os
 
 
@@ -40,6 +41,7 @@ class Auth(MethodView):
 
     # Register a user
 
+    @cross_origin()
     def post(self, action):
         if action in ['signup', 'login']:
             if action == 'signup':

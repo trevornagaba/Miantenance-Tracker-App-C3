@@ -9,6 +9,7 @@ import datetime
 from functools import wraps
 from myapp.auth import Auth
 from flask.views import MethodView
+from flask_cors import cross_origin
 
 # app.config['SECRET KEY'] = 'thisissecret'
 
@@ -59,6 +60,7 @@ class UserRequests(MethodView):
                 }
             ), 400
 
+    @cross_origin()
     @auth.token_required
     def get(current_user, self, id=None):
         if id is None:
